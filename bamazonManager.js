@@ -64,12 +64,12 @@ function addNewProduct() {
     }, {
         type: 'input',
         name: 'department',
-        message: 'Please enter the department name:',
+        message: 'Please enter the department ID:',
         validate: function(value) {
-            if (value.trim() == '') {
-                return false;
-            } else {
+            if (isNaN(value) == false) {
                 return true;
+            } else {
+                return false;
             };
         }
     }, {
@@ -95,10 +95,18 @@ function addNewProduct() {
             };
         }
     }]).then(function(answers) {
-        connection.query('INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES (?, ?, ?, ?)', [answers.product, answers.department, answers.price, answers.quantity], function(err) {
+        connection.query('SELECT product_name FROM products WHERE product_name = ?', [answers.product], function(err, res) {
             if (err) throw err;
-            console.log('\nProduct added successfully!\n');
-            menu();
+            if (res.length > 0) {
+                console.log(chalk.red('\nThe product name ') + chalk.yellow(answers.product) + chalk.red(' already exists!\n'));
+                menu();
+            } else {
+                connection.query('INSERT INTO products (product_name, department_id, price, stock_quantity) VALUES (?, ?, ?, ?)', [answers.product, answers.department, answers.price, answers.quantity], function(err) {
+                    if (err) throw err;
+                    console.log(chalk.yellow('\nProduct added successfully!\n'));
+                    menu();
+                });
+            };
         });
     });
 };
@@ -182,14 +190,14 @@ function displayInventory(res) {
     console.log('-'.repeat(colSize.col1) + ' ' + '-'.repeat(colSize.col2) + ' ' + '-'.repeat(colSize.col3) + ' ' + '-'.repeat(colSize.col4));
     //Display row data
     for (var i = 0; i < res.length; i++) {
-        console.log(chalk.green(res[i].item_id + ' '.repeat(colSize.col1 - res[i].item_id.toString().length + 1)) + res[i].product_name + ' '.repeat(colSize.col2 - res[i].product_name.length + 1) + res[i].department_name + ' '.repeat(colSize.col3 - res[i].department_name.length + 1) + chalk.blue('$' + (res[i].price.toString().includes('.') ? res[i].price : res[i].price + '.00')));
+        console.log(chalk.green(res[i].item_id + ' '.repeat(colSize.col1 - res[i].item_id.toString().length + 1)) + res[i].product_name + ' '.repeat(colSize.col2 - res[i].product_name.length + 1) + res[i].department_name + ' '.repeat(colSize.col3 - res[i].department_name.length + 1) + chalk.blue('$' + res[i].price.toFixed(2)));
     };
     console.log('\n');
     menu();
 };
 
 function viewInventory(low) {
-    var select = 'SELECT * FROM products';
+    var select = 'SELECT item_id, product_name, department_name, price FROM products INNER JOIN departments ON (products.department_id = departments.department_id)';
     if (low) select += ' WHERE stock_quantity < 5';
 
     connection.query(select, function(err, res) {

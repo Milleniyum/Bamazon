@@ -56,7 +56,8 @@ function buy() {
                     buy();
                 } else {
                     connection.query('UPDATE products SET ? WHERE ?', [{
-                            stock_quantity: res[0].stock_quantity - answer.quantity
+                            stock_quantity: res[0].stock_quantity - answer.quantity,
+                            product_sales: res[0].product_sales + (res[0].price * parseInt(answer.quantity))
                         },
                         {
                             item_id: answer.id
@@ -104,14 +105,14 @@ function displayInventory(res) {
     console.log('-'.repeat(colSize.col1) + ' ' + '-'.repeat(colSize.col2) + ' ' + '-'.repeat(colSize.col3) + ' ' + '-'.repeat(colSize.col4));
     //Display row data
     for (var i = 0; i < res.length; i++) {
-        console.log(chalk.green(res[i].item_id + ' '.repeat(colSize.col1 - res[i].item_id.toString().length + 1)) + res[i].product_name + ' '.repeat(colSize.col2 - res[i].product_name.length + 1) + res[i].department_name + ' '.repeat(colSize.col3 - res[i].department_name.length + 1) + chalk.blue('$' + (res[i].price.toString().includes('.') ? res[i].price : res[i].price + '.00')));
+        console.log(chalk.green(res[i].item_id + ' '.repeat(colSize.col1 - res[i].item_id.toString().length + 1)) + res[i].product_name + ' '.repeat(colSize.col2 - res[i].product_name.length + 1) + res[i].department_name + ' '.repeat(colSize.col3 - res[i].department_name.length + 1) + chalk.blue('$' + res[i].price.toFixed(2)));
     };
     console.log('\n');
     buy();
 };
 
 function getInventory() {
-    connection.query('SELECT * FROM products', function(err, res) {
+    connection.query('SELECT item_id, product_name, department_name, price FROM products INNER JOIN departments ON (products.department_id = departments.department_id)', function(err, res) {
         if (err) throw err;
         displayInventory(res);
     });
