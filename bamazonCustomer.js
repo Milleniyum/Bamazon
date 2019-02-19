@@ -107,7 +107,7 @@ function displayInventory(res) {
     for (var i = 0; i < res.length; i++) {
         console.log(chalk.green(res[i].item_id + ' '.repeat(colSize.col1 - res[i].item_id.toString().length + 1)) + res[i].product_name + ' '.repeat(colSize.col2 - res[i].product_name.length + 1) + res[i].department_name + ' '.repeat(colSize.col3 - res[i].department_name.length + 1) + chalk.blue('$' + res[i].price.toFixed(2)));
     };
-    console.log('\n');
+    console.log(chalk.yellow('\nPress Control+C to exit.\n'));
     buy();
 };
 
